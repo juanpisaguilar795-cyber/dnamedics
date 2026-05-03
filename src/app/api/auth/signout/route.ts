@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST() {
+export async function POST(request: Request) {
   const supabase = await createClient();
+  const { origin } = new URL(request.url);
 
   // 1. Cerrar sesión en Supabase (invalida el token en el servidor)
   await supabase.auth.signOut();
 
   // 2. Crear respuesta con redirección a /login
   const response = NextResponse.redirect(
-    new URL("/login", process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+    new URL("/login", process.env.NEXT_PUBLIC_APP_URL ?? origin),
     { status: 302 }
   );
 

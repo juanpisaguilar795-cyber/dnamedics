@@ -83,6 +83,7 @@ export default function RegisterPage() {
       email: data.email,
       password: data.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/login`,
         data: {
           full_name: data.full_name.trim(),
           phone: data.phone?.trim() ?? "",
