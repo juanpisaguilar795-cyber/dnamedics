@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   
   if (!article) return { title: "Artículo – Dnamedics Bogotá" };
   
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dnamedics.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dnamedics.vercel.app';
 
   return {
     title: `${article.title} – Dnamedics`,
@@ -79,7 +79,7 @@ export default async function ArticlePage({ params }: Props) {
   if (!article) notFound();
 
   const iconIndex = params.slug.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % ICON_LIST.length;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dnamedics.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dnamedics.vercel.app';
   const shareUrl = `${siteUrl}/noticias/${article.slug}`;
   const encodedTitle = encodeURIComponent(article.title);
 

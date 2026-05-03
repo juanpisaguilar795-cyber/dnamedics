@@ -39,10 +39,10 @@ Body (HTML):
 
 En Supabase → Authentication → URL Configuration:
 
-Site URL: https://tu-dominio.vercel.app
+Site URL: https://dnamedics.vercel.app
 
 Redirect URLs (agregar):
-- https://tu-dominio.vercel.app/dashboard
+- https://dnamedics.vercel.app/dashboard
 - http://localhost:3000/dashboard  (para desarrollo)
 
 ## 4. Verificar en código

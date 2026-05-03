@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   // 👇 Agregar metadataBase para evitar el warning
   metadataBase: new URL(
     process.env.NODE_ENV === "production"
-      ? "https://dnamedics.com" // 👈 Cambia por tu dominio real cuando hagas deploy
+      ? "https://dnamedics.vercel.app" // ✅ Dominio actualizado
       : "http://localhost:3000"
   ),
   icons: {

@@ -148,7 +148,7 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
     setLoading(true); setError(null);
     const supabase = createClient();
     const { error: err } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/reset-password`,
     });
     if (err) { setError("No pudimos procesar la solicitud. Verifica tu email."); setLoading(false); return; }
     setSentEmail(data.email); setSent(true); setLoading(false);
