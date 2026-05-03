@@ -7,34 +7,69 @@ import { BookingButton } from "./BookingButton";
 export function HeroSection() {
   const waUrl = getWhatsAppUrl("Hola, quisiera agendar una consulta en Dnamedics");
   const [logoSrc, setLogoSrc] = useState("/logo.png");
+  const [mounted, setMounted] = useState(false);
+  const [isWeekday, setIsWeekday] = useState(false);
 
   useEffect(() => {
-    const updateHeroLogo = () => {
-      const hour = new Date().getHours();
+    setMounted(true);
+    
+    // Almacenamos festivos para no peticionar la API cada minuto
+    let holidaysCache: string[] = [];
+
+    const fetchHolidays = async () => {
+      try {
+        const year = new Date().getFullYear();
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/CO`);
+        if (res.ok) {
+          const data = await res.json();
+          holidaysCache = data.map((h: any) => h.date);
+        }
+      } catch (err) {
+        console.error("No se pudieron cargar los festivos:", err);
+      }
+    };
+
+    const updateHeroState = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      const day = now.getDay();
+      
+      // Formato YYYY-MM-DD para comparar (en-CA da ese formato localmente)
+      const dateString = now.toLocaleDateString('en-CA'); 
+      const isHoliday = holidaysCache.includes(dateString);
+
+      // Logo según hora
       if (hour >= 15 || hour < 6) {
         setLogoSrc("/logo-oscuro.png");
       } else {
         setLogoSrc("/logo.png");
       }
+
+      // Disponibilidad: No es domingo (0), no es sábado (6) y no es festivo
+      setIsWeekday(day !== 0 && day !== 6 && !isHoliday);
     };
 
-    updateHeroLogo();
-    const interval = setInterval(updateHeroLogo, 60000);
+    // Primero cargamos festivos y luego ejecutamos el estado inicial
+    fetchHolidays().finally(() => {
+      updateHeroState();
+    });
+
+    const interval = setInterval(updateHeroState, 60000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
-      
+
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-20 -right-20 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[600px] lg:h-[600px] rounded-full bg-brand-teal/5" />
         <div className="absolute -bottom-10 -left-10 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full bg-brand-navy/5" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16 w-full">
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
-          
+
           <div className="relative z-10">
             <span className="inline-flex items-center gap-1.5 bg-brand-teal/5 text-brand-teal text-[10px] sm:text-xs font-bold tracking-wider uppercase px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-teal animate-pulse" />
@@ -55,13 +90,13 @@ export function HeroSection() {
             </h1>
 
             <p className="text-slate-600 text-sm sm:text-base lg:text-lg font-light leading-relaxed mb-6 sm:mb-8 max-w-lg lg:max-w-xl border-l-2 border-brand-teal/20 pl-4 sm:pl-6">
-              Dnamedics es un consultorio médico dedicado a la medicina biorreguladora, 
+              Dnamedics es un consultorio médico dedicado a la medicina biorreguladora,
               fisioterapia, quiropráxia y terapias alternativas.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10">
               <BookingButton size="lg" fullWidth className="sm:w-auto" />
-              
+
               <a
                 href={waUrl}
                 target="_blank"
@@ -75,8 +110,8 @@ export function HeroSection() {
 
             <div className="flex items-center justify-around sm:justify-start gap-4 sm:gap-8 lg:gap-10 pt-6 sm:pt-8 border-t border-slate-200">
               {[
-                { num: "500+", label: "Pacientes" }, 
-                { num: "8+", label: "Años" }, 
+                { num: "500+", label: "Pacientes" },
+                { num: "8+", label: "Años" },
                 { num: "98%", label: "Satisfacción" }
               ].map((s) => (
                 <div key={s.label} className="text-center sm:text-left">
@@ -93,9 +128,9 @@ export function HeroSection() {
           <div className="hidden sm:flex justify-center items-center">
             <div className="relative w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80">
               <div className="relative w-full h-full rounded-full bg-gradient-to-br from-brand-teal via-brand-navy to-brand-cyan shadow-2xl shadow-brand-navy/20 transform transition-transform duration-700 hover:scale-105 overflow-hidden">
-                
+
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-teal via-brand-navy to-brand-cyan" />
-                
+
                 <Image
                   src={logoSrc}
                   alt="Dnamedics Logo"
@@ -113,10 +148,12 @@ export function HeroSection() {
                 <div className="absolute inset-6 rounded-full border border-white/5 pointer-events-none" />
               </div>
 
-              <div className="absolute -top-3 -right-4 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-2 z-20">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-                <p className="text-xs font-medium text-slate-700">Citas disponibles</p>
-              </div>
+              {mounted && isWeekday && (
+                <div className="absolute -top-3 -right-4 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-2 z-20">
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
+                  <p className="text-xs font-medium text-slate-700">Citas disponibles</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -133,10 +170,12 @@ export function HeroSection() {
                   sizes="192px"
                 />
               </div>
-              <div className="absolute -top-2 -right-2 bg-white rounded-xl shadow-md px-2.5 py-1.5 flex items-center gap-1.5 z-20">
-                <span className="w-2 h-2 rounded-full bg-green-400" />
-                <p className="text-[9px] font-medium text-slate-700">Citas hoy</p>
-              </div>
+              {mounted && isWeekday && (
+                <div className="absolute -top-2 -right-2 bg-white rounded-xl shadow-md px-2.5 py-1.5 flex items-center gap-1.5 z-20">
+                  <span className="w-2 h-2 rounded-full bg-green-400" />
+                  <p className="text-[9px] font-medium text-slate-700">Citas hoy</p>
+                </div>
+              )}
             </div>
           </div>
 
